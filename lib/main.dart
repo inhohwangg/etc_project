@@ -1,28 +1,26 @@
-import 'package:etc_test_project/pages/kiosk/ocr-demo-pg.dart';
-import 'package:etc_test_project/pages/kiosk/ocr-demo-test-pg.dart';
-import 'package:etc_test_project/pages/kiosk/pic-test-pg.dart';
+import 'package:Youtube_Stop/pages/kiosk/image-pg.dart';
+import 'package:Youtube_Stop/pages/kiosk/wireframe-pg.dart';
+import 'package:Youtube_Stop/pages/pauseApp/pause-app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:get/get.dart';
+import 'package:mouse_follower/mouse_follower.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   final androidConfig = FlutterBackgroundAndroidConfig(
       notificationTitle: '근태관리 테스트 앱',
       notificationText: 'GPS를 이용하여 근태관리 처리',
       notificationImportance: AndroidNotificationImportance.High,
-      notificationIcon: AndroidResource(name: 'background_icon', defType: 'drawable'));
+      notificationIcon:
+          AndroidResource(name: 'background_icon', defType: 'drawable'));
   await FlutterBackground.initialize(androidConfig: androidConfig);
 
-  // 권한 요청
   await requestPermissions();
-
-  runApp(
-    MyApp(),
-  );
+  runApp(MyApp());
 }
 
 Future<void> requestPermissions() async {
@@ -34,7 +32,8 @@ Future<void> requestPermissions() async {
 
   if (locationPermissionStatus.isDenied) {
     // 권한 요청
-    Map<Permission, PermissionStatus> statuses = await requiredPermissions.request();
+    Map<Permission, PermissionStatus> statuses =
+        await requiredPermissions.request();
 
     // 모든 권한이 허용되지 않았다면 사용자에게 안내합니다.
     if (statuses.containsValue(PermissionStatus.denied)) {
@@ -97,7 +96,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // home: GeoFenceTestPage(),
-      home: PicTestPage(),
+      home: WireFramePage(),
       //K89332290388957
     );
   }

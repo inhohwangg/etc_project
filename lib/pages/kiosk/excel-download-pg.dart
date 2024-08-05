@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:Youtube_Stop/util/g_print.dart';
 import 'package:dio/dio.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,38 @@ class DummyPage extends StatefulWidget {
 class _DummyPageState extends State<DummyPage> {
   bool isLoading = false;
 
-  Future<void> storeData() async {
+  // Future<void> storeData() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   var dio = Dio();  // Dio 인스턴스 생성
+  //   int totalPages = 50;  // 전체 페이지 수를 설정합니다.
+  //   List allItems = [];  // 모든 데이터를 저장할 리스트
+
+  //   try {
+  //     for (int page = 1; page <= totalPages; page++) {
+  //       var response = await dio.get('https://uiriver-api.incase.link/api/collections/stores/records?page=$page');
+  //       allItems.addAll(response.data['items']);
+  //     }
+
+  //     print('Total items collected: ${allItems.length}');
+  //     await createExcelAndSave(allItems);  // Excel 파일 생성 및 저장 함수 호출
+  //   } catch (e) {
+  //     print("Error fetching data or writing file: $e");
+  //   } finally {
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
+Future<void> storeData() async {
     setState(() {
       isLoading = true;
     });
 
     var dio = Dio();  // Dio 인스턴스 생성
-    int totalPages = 13;  // 전체 페이지 수를 설정합니다.
+    int totalPages = 50;  // 전체 페이지 수를 설정합니다.
     List allItems = [];  // 모든 데이터를 저장할 리스트
 
     try {
@@ -29,8 +55,11 @@ class _DummyPageState extends State<DummyPage> {
         allItems.addAll(response.data['items']);
       }
 
-      print('Total items collected: ${allItems.length}');
-      await createExcelAndSave(allItems);  // Excel 파일 생성 및 저장 함수 호출
+      // enable 필드가 True인 항목만 필터링
+      List filteredItems = allItems.where((item) => item['enable'] == true).toList();
+
+      print('Total items collected: ${filteredItems.length}');
+      await createExcelAndSave(filteredItems);  // Excel 파일 생성 및 저장 함수 호출
     } catch (e) {
       print("Error fetching data or writing file: $e");
     } finally {
@@ -39,6 +68,7 @@ class _DummyPageState extends State<DummyPage> {
       });
     }
   }
+
 
  Future<void> createExcelAndSave(List<dynamic> items) async {
   var excel = Excel.createExcel();
@@ -88,7 +118,7 @@ class _DummyPageState extends State<DummyPage> {
     File file = File(filePath);
 
     if (!file.existsSync()) {
-      print("File does not exist at $filePath.");
+      printYellow("File does not exist at $filePath.");
       return;
     }
 
@@ -118,7 +148,7 @@ class _DummyPageState extends State<DummyPage> {
       body: Center(
         child: ElevatedButton(
           onPressed: () async {
-            // storeData();  // 데이터 저장 함수 호출
+            storeData();  // 데이터 저장 함수 호출
             uploadData();
           },
           child: Text('Download and Upload Data'),

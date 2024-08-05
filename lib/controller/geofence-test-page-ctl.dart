@@ -1,7 +1,7 @@
 // ignore_for_file: unused_local_variable, file_names
 
+import 'package:Youtube_Stop/util/g_print.dart';
 import 'package:dio/dio.dart';
-import 'package:etc_test_project/util/g_print.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';

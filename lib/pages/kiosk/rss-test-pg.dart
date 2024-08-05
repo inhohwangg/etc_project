@@ -1,5 +1,4 @@
-import 'package:etc_test_project/controller/kiosk/rss-test-pg-ctl.dart';
-import 'package:etc_test_project/util/g_print.dart';
+import 'package:Youtube_Stop/controller/kiosk/rss-test-pg-ctl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

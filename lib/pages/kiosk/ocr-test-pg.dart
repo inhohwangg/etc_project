@@ -1,4 +1,4 @@
-import 'package:etc_test_project/controller/kiosk/ocr-test-pg-ctl.dart';
+import 'package:Youtube_Stop/controller/kiosk/ocr-test-pg-ctl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

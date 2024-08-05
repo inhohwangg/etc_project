@@ -2,8 +2,8 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
-import 'package:etc_test_project/models/sensor_data.dart';
-import 'package:etc_test_project/util/g_print.dart';
+import 'package:Youtube_Stop/models/sensor_data.dart';
+import 'package:Youtube_Stop/util/g_print.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';

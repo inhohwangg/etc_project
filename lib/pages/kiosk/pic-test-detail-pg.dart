@@ -1,10 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:etc_test_project/controller/kiosk/pic-test-detail-pg-ctl.dart';
-import 'package:etc_test_project/pages/kiosk/pic-test-pg.dart';
-import 'package:etc_test_project/util/g_dio.dart';
-import 'package:etc_test_project/util/g_print.dart';
+import 'package:Youtube_Stop/controller/kiosk/pic-test-detail-pg-ctl.dart';
+import 'package:Youtube_Stop/pages/kiosk/pic-test-pg.dart';
+import 'package:Youtube_Stop/util/g_dio.dart';
+import 'package:Youtube_Stop/util/g_print.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as form;
@@ -20,7 +20,8 @@ class PicTestDetailPage extends StatefulWidget {
 
 class _PicTestDetailPageState extends State<PicTestDetailPage> {
   final ImagePicker picker = ImagePicker();
-  final PicTextDetailPageController controller = Get.put(PicTextDetailPageController());
+  final PicTextDetailPageController controller =
+      Get.put(PicTextDetailPageController());
   List<XFile> newImages = [];
   List<dynamic> currentImages = [];
   Set<String> toBeDeleted = Set();
@@ -36,7 +37,8 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
   //* 사진 촬영하고 촬영한 사진을 newImage 변수에 할당
   void pickImage() async {
     try {
-      final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+      final XFile? image =
+          await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
       if (image != null) {
         setState(() {
           newImages.add(image);
@@ -68,29 +70,6 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
     }
   }
 
-  // Future<form.Response> uploadImages() async {
-  //   Map<String, dynamic> formDataMap = {
-  //     'title': controller.infoData['title'],
-  //     'content': controller.infoData['content'],
-  //     'subImage': currentImages.where((image) => !toBeDeleted.contains(image)).toList()
-  //   };
-
-  //   // 삭제할 이미지에 대한 처리
-  //   toBeDeleted.forEach((deletedImage) {
-  //     formDataMap['deletedImages'] = [deletedImage]; // 서버에 삭제할 이미지 목록을 전달
-  //   });
-
-  //   var formData = form.FormData.fromMap(formDataMap);
-
-  //   try {
-  //     var response = await dio.patch('$baseUrl/api/collections/blog/records/${controller.infoData['id']}',
-  //         data: formData, options: form.Options(headers: {'Content-Type': 'multipart/form-data'}));
-  //     return response;
-  //   } catch (e) {
-  //     print('Error during image update: $e');
-  //     throw Exception('Failed to update images');
-  //   }
-  // }
   Future<form.Response> uploadImages() async {
     for (var image in currentImages) {
       imageList.add(image);
@@ -126,13 +105,20 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
 
     //* 서버 요청
     try {
-      var res = await dio.patch('$baseUrl/api/collections/blog/records/${controller.infoData['id']}',
-          data: formData, options: form.Options(headers: {'Content-Type': 'multipart/form-data'}));
+      var res = await dio.patch(
+          '$baseUrl/api/collections/blog/records/${controller.infoData['id']}',
+          data: formData,
+          options:
+              form.Options(headers: {'Content-Type': 'multipart/form-data'}));
       if (res.statusCode! < 399) {
-        Get.snackbar('성공', '사진이 성공적으로 업데이트 되었습니다.', backgroundColor: Colors.green[200], snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar('성공', '사진이 성공적으로 업데이트 되었습니다.',
+            backgroundColor: Colors.green[200],
+            snackPosition: SnackPosition.BOTTOM);
         Get.back();
       } else {
-        Get.snackbar('실패', '사진 업로드에 실패했습니다. ${res.statusCode}', backgroundColor: Colors.red[200], snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar('실패', '사진 업로드에 실패했습니다. ${res.statusCode}',
+            backgroundColor: Colors.red[200],
+            snackPosition: SnackPosition.BOTTOM);
       }
       return res;
     } catch (e) {
@@ -143,9 +129,13 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
 
   void handleResponse(form.Response response) {
     if (response.statusCode! < 399) {
-      Get.snackbar('성공', '사진이 성공적으로 업데이트 되었습니다.', backgroundColor: Colors.green[200], snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('성공', '사진이 성공적으로 업데이트 되었습니다.',
+          backgroundColor: Colors.green[200],
+          snackPosition: SnackPosition.BOTTOM);
     } else {
-      Get.snackbar('실패', '사진 업로드에 실패했습니다.', backgroundColor: Colors.red[200], snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('실패', '사진 업로드에 실패했습니다.',
+          backgroundColor: Colors.red[200],
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -202,7 +192,8 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    PicTextDetailPageController controller = Get.put(PicTextDetailPageController());
+    PicTextDetailPageController controller =
+        Get.put(PicTextDetailPageController());
     Map info = controller.infoData;
     return Scaffold(
       appBar: AppBar(
@@ -238,14 +229,25 @@ class _PicTestDetailPageState extends State<PicTestDetailPage> {
             ),
             Wrap(
               children: [
-                ...currentImages.where((image) => !toBeDeleted.contains(image)).map((imageUrl) => Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Image.network('$baseUrl/api/files/${controller.infoData['collectionId']}/${controller.infoData['id']}/$imageUrl', width: 80, height: 80),
-                        IconButton(icon: Icon(Icons.remove_circle, color: Colors.red), onPressed: () => markForDeletion(imageUrl)),
-                      ],
-                    )),
-                ...newImages.map((imageFile) => Image.file(File(imageFile.path), width: 80, height: 80)),
+                ...currentImages
+                    .where((image) => !toBeDeleted.contains(image))
+                    .map(
+                      (imageUrl) => Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          Image.network(
+                              '$baseUrl/api/files/${controller.infoData['collectionId']}/${controller.infoData['id']}/$imageUrl',
+                              width: 80,
+                              height: 80),
+                          IconButton(
+                              icon:
+                                  Icon(Icons.remove_circle, color: Colors.red),
+                              onPressed: () => markForDeletion(imageUrl)),
+                        ],
+                      ),
+                    ),
+                ...newImages.map((imageFile) =>
+                    Image.file(File(imageFile.path), width: 80, height: 80)),
                 IconButton(icon: Icon(Icons.add_a_photo), onPressed: pickImage),
               ],
             ),

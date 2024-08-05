@@ -1,5 +1,5 @@
-import 'package:etc_test_project/util/g_dio.dart';
-import 'package:etc_test_project/util/g_print.dart';
+import 'package:Youtube_Stop/util/g_dio.dart';
+import 'package:Youtube_Stop/util/g_print.dart';
 import 'package:get/get.dart';
 import 'package:translator/translator.dart';
 import 'package:xml/xml.dart' as xml;

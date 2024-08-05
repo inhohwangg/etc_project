@@ -1,5 +1,8 @@
 package com.example.etc_test_project
 
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import android.content.Context
 import android.app.PendingIntent
 import android.content.Intent
 import io.flutter.embedding.android.FlutterActivity
@@ -9,16 +12,51 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import com.google.android.gms.location.*
-import com.example.etc_test_project.GeoFenceBroadcastReceiver
+import androidx.annotation.NonNull
+import android.util.Log
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 
 class MainActivity : FlutterActivity() {
     private lateinit var geofencingClient: GeofencingClient
+    private val CHANNEL = "com.example.appblocker/channel"
+
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "setBlockedApp") {
+                val packageName = call.argument<String>("packageName")
+                val duration = call.argument<Long>("duration")
+                if (packageName != null) {
+                    if (duration != null && duration > 0) {
+                        startTimerService(duration, packageName)
+                    }
+                    result.success(null)
+                } else {
+                    result.notImplemented()
+                }
+            }
+        }
+    }
+
+    private fun startTimerService(duration: Long, packageName: String) {
+        val intent = Intent(this, TimerService::class.java)
+        intent.putExtra("duration", duration)
+        intent.putExtra("packageName", packageName)
+        startService(intent)
+    }
+
+    private fun saveBlockedApp(packageName: String?) {
+        val sharedPref = getSharedPreferences("AppBlockerPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("blockedApp", packageName)
+            apply()
+        }
+        Log.d("AppBlocker", "Saved blocked app: $packageName") // 로그 추가
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // setContentView(R.layout.activity_main)
         checkAndRequestBatteryOptimization()
         
         // 작업 스케줄링
@@ -43,7 +81,6 @@ class MainActivity : FlutterActivity() {
 
     private fun addGeofence() {
         val geofence = Geofence.Builder()
-            // 여기에 지오펜스 설정을 추가합니다.
             .setRequestId("someGeofenceId")
             .setCircularRegion(
                 37.422, // 예시 위도

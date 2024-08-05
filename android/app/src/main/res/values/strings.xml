@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ETC Test Project</string>
+    <string name="accessibility_service_description">App Blocker Accessibility Service</string>
+</resources>

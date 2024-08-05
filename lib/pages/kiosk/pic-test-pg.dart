@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:Youtube_Stop/pages/kiosk/pic-test-detail-pg.dart';
+import 'package:Youtube_Stop/util/g_dio.dart';
 import 'package:dio/dio.dart' as form;
-import 'package:etc_test_project/pages/kiosk/pic-test-detail-pg.dart';
-import 'package:etc_test_project/util/g_dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
