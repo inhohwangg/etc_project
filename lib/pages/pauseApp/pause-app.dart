@@ -5,15 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class AppBlocker extends StatefulWidget {
+  AppBlocker({super.key});
+
   @override
   _AppBlockerState createState() => _AppBlockerState();
 }
 
 class _AppBlockerState extends State<AppBlocker> {
   TimeOfDay _startTime = TimeOfDay.now();
-  Duration _duration = Duration(minutes: 2);
+  Duration _duration = Duration(minutes: 1);
   String _selectedApp = 'com.google.android.youtube';
   bool _isRestricted = false;
+  String _timeLeft = '';
+  Timer? _timer;
 
   static const platform = MethodChannel('com.example.appblocker/channel');
 
@@ -67,24 +71,52 @@ class _AppBlockerState extends State<AppBlocker> {
   }
 
   void _startRestriction() {
-  setState(() {
-    _isRestricted = true;
-  });
+    setState(() {
+      _isRestricted = true;
+    });
 
-  final durationMillis = _duration.inMilliseconds;
+    final durationMillis = _duration.inMilliseconds;
 
-  platform
-      .invokeMethod('setBlockedApp', {"packageName": _selectedApp, "duration": durationMillis}).then((_) {
-    print("setBlockedApp method invoked successfully");
-  }).catchError((error) {
-    print("Error invoking setBlockedApp: $error");
-  });
+    platform.invokeMethod('setBlockedApp',
+        {"packageName": _selectedApp, "duration": durationMillis}).then((_) {
+      print("setBlockedApp method invoked successfully");
+    }).catchError((error) {
+      print("Error invoking setBlockedApp: $error");
+    });
 
-  _restrictAppUsage();
-}
+    _restrictAppUsage();
+    _startTimer();
+  }
 
   void _restrictAppUsage() async {
     platform.invokeMethod('setBlockedApp', {"packageName": _selectedApp});
+  }
+
+  void _endRestriction() async {
+    platform.invokeMethod('setBlockedApp', {"packageName": ""});
+    setState(() {
+      _isRestricted = false;
+      _timeLeft = '';
+    });
+    _timer?.cancel();
+  }
+
+  void _startTimer() {
+    int secondsLeft = _duration.inSeconds;
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (secondsLeft > 0) {
+          secondsLeft--;
+          final minutes = secondsLeft ~/ 60;
+          final seconds = secondsLeft % 60;
+          _timeLeft =
+              '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+        } else {
+          _endRestriction();
+          timer.cancel();
+        }
+      });
+    });
   }
 
   @override
@@ -115,17 +147,20 @@ class _AppBlockerState extends State<AppBlocker> {
             ),
             SizedBox(height: 20),
             _isRestricted
-                ? Text(
-                    '앱 사용이 제한되었습니다.',
-                    style: TextStyle(color: Colors.red),
+                ? Column(
+                    children: [
+                      Text(
+                        '앱 사용이 제한되었습니다.',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      Text(
+                        '남은 시간: $_timeLeft',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ],
                   )
                 : ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isRestricted = true;
-                      });
-                      _startRestriction();
-                    },
+                    onPressed: _startRestriction,
                     child: Text('앱 사용 제한 시작'),
                   ),
           ],
@@ -138,7 +173,7 @@ class _AppBlockerState extends State<AppBlocker> {
 class DurationPickerDialog extends StatefulWidget {
   final Duration? initialDuration;
 
-  DurationPickerDialog({this.initialDuration});
+  DurationPickerDialog({super.key, this.initialDuration});
 
   @override
   _DurationPickerDialogState createState() => _DurationPickerDialogState();
@@ -194,13 +229,13 @@ class _DurationPickerDialogState extends State<DurationPickerDialog> {
 class AppPickerDialog extends StatelessWidget {
   final List<Application>? apps;
 
-  AppPickerDialog({this.apps});
+  AppPickerDialog({super.key, this.apps});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('차단할 앱 선택'),
-      content: Container(
+      content: SizedBox(
         width: double.maxFinite,
         child: ListView.builder(
           shrinkWrap: true,

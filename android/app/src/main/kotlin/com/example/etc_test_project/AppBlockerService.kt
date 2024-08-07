@@ -8,18 +8,19 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.os.SystemClock
 import androidx.core.app.NotificationCompat
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.engine.FlutterEngineCache
 import java.util.*
 
-class TimerService : Service() {
+class AppBlockerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "TimerServiceChannel",
-                "Timer Service Channel",
+                "AppBlockerServiceChannel",
+                "App Blocker Service Channel",
                 NotificationManager.IMPORTANCE_DEFAULT
             )
             val manager = getSystemService(NotificationManager::class.java)
@@ -28,15 +29,15 @@ class TimerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val duration = intent?.getLongExtra("duration", 0L) ?: 0L
+        val durationMillis = intent?.getLongExtra("duration", 0L) ?: 0L
         val packageName = intent?.getStringExtra("packageName") ?: ""
 
         val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val notification: Notification = NotificationCompat.Builder(this, "TimerServiceChannel")
+        val notification: Notification = NotificationCompat.Builder(this, "AppBlockerServiceChannel")
             .setContentTitle("App Blocker")
-            .setContentText("Blocking $packageName for ${duration / 60000} minutes")
+            .setContentText("Blocking $packageName for ${durationMillis / 60000} minutes")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .build()
@@ -47,18 +48,27 @@ class TimerService : Service() {
         Timer().schedule(object : TimerTask() {
             override fun run() {
                 // 타이머가 끝나면 차단 해제
-                // stopBlockingApp()
+                stopBlockingApp(packageName)
                 stopSelf()
             }
-        }, duration)
+        }, durationMillis)
 
         return START_NOT_STICKY
     }
 
-    // private fun stopBlockingApp() {
-    //     val methodChannel = MethodChannel(FlutterEngine(this).dartExecutor, "com.example.appblocker/channel")
-    //     methodChannel.invokeMethod("setBlockedApp", mapOf("packageName" to ""))
-    // }
+    private fun stopBlockingApp(packageName: String) {
+        val flutterEngine = FlutterEngineCache.getInstance().get("my_engine_id")
+        flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+            val methodChannel = MethodChannel(messenger, "com.example.appblocker/channel")
+            methodChannel.invokeMethod("setBlockedApp", mapOf("packageName" to ""))
+        }
+
+        // 접근성 서비스에서 차단 해제
+        val intent = Intent("com.example.etc_test_project.AppBlockerAccessibilityService")
+        intent.putExtra("action", "remove_block")
+        intent.putExtra("packageName", packageName)
+        sendBroadcast(intent)
+    }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null

@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final androidConfig = FlutterBackgroundAndroidConfig(
       notificationTitle: '근태관리 테스트 앱',
       notificationText: 'GPS를 이용하여 근태관리 처리',
@@ -96,7 +98,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // home: GeoFenceTestPage(),
-      home: WireFramePage(),
+      home: AppBlocker(),
       //K89332290388957
     );
   }
