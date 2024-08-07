@@ -1,14 +1,9 @@
-import 'package:Youtube_Stop/pages/kiosk/image-pg.dart';
-import 'package:Youtube_Stop/pages/kiosk/wireframe-pg.dart';
 import 'package:Youtube_Stop/pages/pauseApp/pause-app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:get/get.dart';
-import 'package:mouse_follower/mouse_follower.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

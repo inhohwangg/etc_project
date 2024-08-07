@@ -47,6 +47,11 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         // 필요 시 구현
     }
 
+		override fun onDestroy() {
+        unregisterReceiver(receiver)
+        super.onDestroy()
+    }
+
     fun addBlockedApp(packageName: String) {
         blockedApps.add(packageName)
 				updateServiceInfo()

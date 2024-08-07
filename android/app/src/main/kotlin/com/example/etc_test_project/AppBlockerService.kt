@@ -64,7 +64,7 @@ class AppBlockerService : Service() {
         }
 
         // 접근성 서비스에서 차단 해제
-        val intent = Intent("com.example.etc_test_project.AppBlockerAccessibilityService")
+        val intent = Intent("com.example.etc_test_project.UPDATE_BLOCKED_APPS")
         intent.putExtra("action", "remove_block")
         intent.putExtra("packageName", packageName)
         sendBroadcast(intent)
