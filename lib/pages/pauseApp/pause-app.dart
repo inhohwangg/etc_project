@@ -77,23 +77,37 @@ class _AppBlockerState extends State<AppBlocker> {
 
     final durationMillis = _duration.inMilliseconds;
 
-    platform.invokeMethod('setBlockedApp',
-        {"packageName": _selectedApp, "duration": durationMillis}).then((_) {
-      print("setBlockedApp method invoked successfully");
-    }).catchError((error) {
-      print("Error invoking setBlockedApp: $error");
-    });
+    try {
+      platform.invokeMethod('setBlockedApp',
+          {"packageName": _selectedApp, "duration": durationMillis}).then((_) {
+        print("setBlockedApp method invoked successfully");
+      }).catchError((error) {
+        print("Error invoking setBlockedApp: $error");
+      });
+    } catch (e) {
+      print("Exception occurred while invoking setBlockedApp: $e");
+    }
 
     _restrictAppUsage();
     _startTimer();
   }
 
   void _restrictAppUsage() async {
-    platform.invokeMethod('setBlockedApp', {"packageName": _selectedApp});
+    try {
+      await platform
+          .invokeMethod('setBlockedApp', {"packageName": _selectedApp});
+    } catch (e) {
+      print("Exception occurred while restricting app usage: $e");
+    }
   }
 
   void _endRestriction() async {
-    platform.invokeMethod('setBlockedApp', {"packageName": ""});
+    try {
+      await platform.invokeMethod('setBlockedApp', {"packageName": ""});
+    } catch (e) {
+      print("Exception occurred while ending restriction: $e");
+    }
+
     setState(() {
       _isRestricted = false;
       _timeLeft = '';

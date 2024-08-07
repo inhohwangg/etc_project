@@ -22,32 +22,34 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private lateinit var geofencingClient: GeofencingClient
     private val CHANNEL = "com.example.appblocker/channel"
-    private var accessibilityService: AppBlockerAccessibilityService? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "setBlockedApp") {
-                val packageName = call.argument<String>("packageName")
-                val duration = call.argument<Any>("duration")
-                if (packageName != null) {
-                    if (duration != null) {
-                        when (duration) {
-                            is Int -> startAppBlockerService(duration.toLong(), packageName)
-                            is Long -> startAppBlockerService(duration, packageName)
-                            else -> result.error("INVALID_ARGUMENT", "Duration must be an Int or Long", null)
+            try {
+                if (call.method == "setBlockedApp") {
+                    val packageName = call.argument<String>("packageName")
+                    val duration = call.argument<Any>("duration")
+                    if (packageName != null) {
+                        if (duration != null) {
+                            when (duration) {
+                                is Int -> startAppBlockerService(duration.toLong(), packageName)
+                                is Long -> startAppBlockerService(duration, packageName)
+                                else -> result.error("INVALID_ARGUMENT", "Duration must be an Int or Long", null)
+                            }
+                        } else {
+                            saveBlockedApp(packageName)
                         }
+                        result.success(null)
                     } else {
-                        saveBlockedApp(packageName)
+                        result.notImplemented()
                     }
-                    result.success(null)
                 } else {
                     result.notImplemented()
                 }
-            } else {
-                result.notImplemented()
+            } catch (e: Exception) {
+                result.error("ERROR", "An error occurred", e.message)
             }
         }
     }
@@ -74,6 +76,7 @@ class MainActivity : FlutterActivity() {
         intent.putExtra("action", "add_block")
         intent.putExtra("packageName", packageName)
         sendBroadcast(intent)
+        Log.d("AppBlocker", "Added block for $packageName") // 추가된 코드
     }
 
     private fun removeBlockedApp(packageName: String) {
@@ -81,6 +84,7 @@ class MainActivity : FlutterActivity() {
         intent.putExtra("action", "remove_block")
         intent.putExtra("packageName", packageName)
         sendBroadcast(intent)
+        Log.d("AppBlocker", "Removed block for $packageName") // 추가된 코드
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,8 +96,8 @@ class MainActivity : FlutterActivity() {
         val uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>().build()
         WorkManager.getInstance(this).enqueue(uploadWorkRequest)
 
-        geofencingClient = LocationServices.getGeofencingClient(this)
-        addGeofence()
+        // geofencingClient = LocationServices.getGeofencingClient(this)
+        // addGeofence()
     }
 
     private fun checkAndRequestBatteryOptimization() {
@@ -108,35 +112,35 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun addGeofence() {
-        val geofence = Geofence.Builder()
-            .setRequestId("someGeofenceId")
-            .setCircularRegion(
-                37.422, // 예시 위도
-                -122.084, // 예시 경도
-                5f // 반경(m)
-            )
-            .setExpirationDuration(Geofence.NEVER_EXPIRE)
-            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-            .build()
+    // private fun addGeofence() {
+    //     val geofence = Geofence.Builder()
+    //         .setRequestId("someGeofenceId")
+    //         .setCircularRegion(
+    //             37.422, // 예시 위도
+    //             -122.084, // 예시 경도
+    //             5f // 반경(m)
+    //         )
+    //         .setExpirationDuration(Geofence.NEVER_EXPIRE)
+    //         .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+    //         .build()
 
-        val geofencingRequest = GeofencingRequest.Builder()
-            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            .addGeofence(geofence)
-            .build()
+    //     val geofencingRequest = GeofencingRequest.Builder()
+    //         .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+    //         .addGeofence(geofence)
+    //         .build()
 
-        val intent = Intent(this, GeoFenceBroadcastReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    //     val intent = Intent(this, GeoFenceBroadcastReceiver::class.java)
+    //     val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
-            addOnSuccessListener {
-                // 지오펜스 추가 성공 시 처리
-            }
-            addOnFailureListener {
-                // 지오펜스 추가 실패 시 처리
-            }
-        }
-    }
+    //     geofencingClient.addGeofences(geofencingRequest, pendingIntent)?.run {
+    //         addOnSuccessListener {
+    //             // 지오펜스 추가 성공 시 처리
+    //         }
+    //         addOnFailureListener {
+    //             // 지오펜스 추가 실패 시 처리
+    //         }
+    //     }
+    // }
 
     private fun checkAccessibilityService() {
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)

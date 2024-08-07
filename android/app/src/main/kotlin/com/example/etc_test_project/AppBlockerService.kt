@@ -8,10 +8,15 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.FlutterEngineCache
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class AppBlockerService : Service() {
 
@@ -53,17 +58,28 @@ class AppBlockerService : Service() {
             }
         }, durationMillis)
 
+        // 백그라운드 작업 스케줄링 추가
+        scheduleUnblockApp(packageName, durationMillis)
+
         return START_NOT_STICKY
     }
 
-    private fun stopBlockingApp(packageName: String) {
-        val flutterEngine = FlutterEngineCache.getInstance().get("my_engine_id")
-        flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-            val methodChannel = MethodChannel(messenger, "com.example.appblocker/channel")
-            methodChannel.invokeMethod("setBlockedApp", mapOf("packageName" to ""))
-        }
+    private fun scheduleUnblockApp(packageName: String, durationMillis: Long) {
+        val inputData = Data.Builder()
+            .putString("packageName", packageName)
+            .putLong("duration", durationMillis)
+            .build()
 
-        // 접근성 서비스에서 차단 해제
+        val workRequest = OneTimeWorkRequestBuilder<AppBlockerWorker>()
+            .setInputData(inputData)
+            .setInitialDelay(durationMillis, TimeUnit.MILLISECONDS)
+            .build()
+
+        WorkManager.getInstance(this).enqueue(workRequest)
+        Log.d("AppBlockerService", "Scheduled background work to unblock $packageName after $durationMillis milliseconds")
+    }
+
+    private fun stopBlockingApp(packageName: String) {
         val intent = Intent("com.example.etc_test_project.UPDATE_BLOCKED_APPS")
         intent.putExtra("action", "remove_block")
         intent.putExtra("packageName", packageName)
